@@ -16,7 +16,8 @@ type JSONResponse struct{
 	Code int `json:"code"`
 	Success bool `json:"success"`
 	Message string `json:"message"`
-	Data []ToDo `json:"data"`
+	// Data []ToDo `json:"data"`
+	Data interface{} `json:"data"`
 }
 
 func main() { 
@@ -56,9 +57,42 @@ func main() {
 			}
 			rw.Write(resJSON)
 			return
-			
+
 		} else if r.Method == "POST"{
 			//method POST
+
+			//menambahkan data baru
+
+			// isi r.body(JSON)
+			// {
+			// 	"kegiatan": "main futsal",
+			// 	"waktu": "2021-12-5"
+			// }
+
+			jsonDecode := json.NewDecoder(r.Body)
+			aktifitasBaru := ToDo{}
+			res := JSONResponse{}
+
+			if err := jsonDecode.Decode(&aktifitasBaru); err != nil {
+				fmt.Println("Terjadi Kesalahan")
+				http.Error(rw, "Terjadi Kesalahan saat membaca input", http.StatusInternalServerError)
+				return
+			}
+
+			res.Code = http.StatusCreated
+			res.Success = true
+			res.Message = "Berhasil menambahkan data"
+			res.Data = aktifitasBaru
+
+			resJSON, err := json.Marshal(res)
+			if err != nil {
+				fmt.Println("Terjadi Kesalahan")
+				http.Error(rw, "Terjadi Kesalahan saat ubah json", http.StatusInternalServerError)
+				return
+			}
+			rw.Header().Add("Content-Type", "application/json")
+			rw.Write(resJSON)
+			return
 
 		}
 	})
